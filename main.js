@@ -33,17 +33,7 @@ Sudoko.prototype.onWindowLoad = function() {
 
     for (var i = 0; i < this.difficulty * this.difficulty; i++) {
         var block = document.createElement('div');
-
         block.classList.add("block");
-
-        var posX = (i % this.difficulty) * this.difficulty * 50;
-        var posY = Math.floor(i / this.difficulty) * this.difficulty * 50;
-
-        block.style.width = (this.difficulty * 50) + "px";
-        block.style.height = (this.difficulty * 50) + "px";
-        block.style.left = posX + "";
-        block.style.top = posY + "";
-        block.style.position = "absolute";
         block.style.boxShadow = "inset 0.4px 0.4px 0.4px 0.4px #000";
         parent.appendChild(block);
     }
@@ -51,20 +41,19 @@ Sudoko.prototype.onWindowLoad = function() {
     for (var y = 0; y < this.difficulty * this.difficulty; y++) {
         for (var x = 0; x < this.difficulty * this.difficulty; x++) {
             var field = document.createElement('div');
-
             field.classList.add("field");
-
             field.dataset.x = x + "";
             field.dataset.y = y + "";
             field.dataset.given = String(this.given[y][x] !== 0);
             field.id = x + "x" + y;
+            field.style.verticalAlign = "middle";
             field.innerText = this.given[y][x] !== 0 ? this.given[y][x] : "";
+
             parent.appendChild(field);
         }
     }
 
     this.onResize();
-
     setTimeout(function() {
         this.doNextStep(0);
     }.bind(this), 0);
@@ -217,16 +206,23 @@ Sudoko.prototype.doNextStep = function(direction) {
 
 Sudoko.prototype.onResize = function() {
     var fields = document.getElementsByClassName("field");
+    var blocks = document.getElementsByClassName("block");
+    var bodyWidth = document.body.offsetWidth;
+    var bodyHeight = document.body.offsetHeight;
+    var cellSize = Math.min(bodyWidth, bodyHeight) / (this.difficulty * this.difficulty);
+    var i, posX, posY;
 
-    for (var i = 0; i < fields.length; i++) {
+    console.log(cellSize, bodyWidth, bodyHeight);
+
+    for (i = 0; i < fields.length; i++) {
         var field = fields[i];
-        var posX = field.dataset.x * 50;
-        var posY = field.dataset.y * 50;
+        posX = field.dataset.x * cellSize;
+        posY = field.dataset.y * cellSize;
         field.style.position = "absolute";
         field.style.left = posX + "";
         field.style.top = posY + "";
-        field.style.width = "50px";
-        field.style.height = "50px";
+        field.style.width = cellSize + "px";
+        field.style.height = cellSize + "px";
         field.style.textAlign = "center";
         field.style.verticalAlign = "middle";
         field.style.boxShadow = "inset 0.1px 0.1px 0.1px 0.1px #000";
@@ -234,8 +230,22 @@ Sudoko.prototype.onResize = function() {
             field.style.fontWeight = "bold";
         }
     }
+
+    for (i = 0; i < blocks.length; i++) {
+        var block = blocks[i];
+        posX = (i % this.difficulty) * this.difficulty * cellSize;
+        posY = Math.floor(i / this.difficulty) * this.difficulty * cellSize;
+
+        block.style.width = (this.difficulty * cellSize) + "px";
+        block.style.height = (this.difficulty * cellSize) + "px";
+        block.style.left = posX + "";
+        block.style.top = posY + "";
+        block.style.position = "absolute";
+    }
+
 };
 
 var sudoku = new Sudoko();
 window.addEventListener('load', sudoku.onWindowLoad.bind(sudoku));
+window.addEventListener('resize', sudoku.onResize.bind(sudoku));
 
