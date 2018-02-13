@@ -1,6 +1,8 @@
 <html>
 <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:500" rel="stylesheet">
     <script src="/main.js"></script>
+    <script src="/step.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -10,5 +12,8 @@
 </head>
 <body>
 <div id="sudoku"></div>
+<button onclick="window.sudoku.onOneStepClicked()" style="width:200px; position:absolute; top: 5px; right:5px;">One Step</button>
+<button onclick="window.sudoku.onAutoClicked()" style="width:200px; position:absolute; top: 50px; right:5px;">Auto</button>
+<button onclick="window.sudoku.onRestartClicked()" style="width:200px; position:absolute; top: 100px; right:5px;">Restart</button>
 </body>
 </html>

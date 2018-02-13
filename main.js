@@ -1,62 +1,53 @@
 /**
  * @constructor
- * @param {number} difficulty
  */
 var Sudoko = function() {
 
     this.given = [
-        [0, 0, 8, 3, 0, 0, 4, 0, 2],
-        [0, 0, 0, 4, 0, 0, 3, 0, 0],
-        [2, 0, 0, 6, 0, 0, 5, 9, 1],
-        [6, 1, 9, 0, 0, 4, 0, 0, 0],
-        [0, 0, 0, 0, 9, 0, 0, 0, 0],
-        [0, 0, 0, 2, 0, 0, 9, 1, 5],
-        [1, 4, 3, 0, 0, 7, 0, 0, 9],
-        [0, 0, 6, 0, 0, 3, 0, 0, 0],
-        [9, 0, 2, 0, 0, 5, 8, 0, 0]
+        [0, 0, 0,  2, 6, 0,  7, 0, 1],
+        [6, 8, 0,  0, 7, 0,  0, 9, 0],
+        [1, 9, 0,  0, 0, 4,  5, 0, 0],
+
+        [8, 2, 0,  1, 0, 0,  0, 4, 0],
+        [0, 0, 4,  6, 0, 2,  9, 0, 0],
+        [0, 5, 0,  0, 0, 3,  0, 2, 8],
+
+        [0, 0, 9,  3, 0, 0,  0, 7, 4],
+        [0, 4, 0,  0, 5, 0,  0, 3, 6],
+        [7, 0, 3,  0, 1, 8,  0, 0, 0]
     ];
 
+    // this.given = [
+    //     [0, 0, 8, 3, 0, 0, 4, 0, 2],
+    //     [0, 0, 0, 4, 0, 0, 3, 0, 0],
+    //     [2, 0, 0, 6, 0, 0, 5, 9, 1],
+    //     [6, 1, 9, 0, 0, 4, 0, 0, 0],
+    //     [0, 0, 0, 0, 9, 0, 0, 0, 0],
+    //     [0, 0, 0, 2, 0, 0, 9, 1, 5],
+    //     [1, 4, 3, 0, 0, 7, 0, 0, 9],
+    //     [0, 0, 6, 0, 0, 3, 0, 0, 0],
+    //     [9, 0, 2, 0, 0, 5, 8, 0, 0]
+    // ];
 
     /**
      * @type {number}
      */
     this.difficulty = Math.sqrt(this.given[0].length);
 
+    /**
+     * @type {number}
+     */
+    this.direction = 0;
+
+    /**
+     * @type {number}
+     */
     this.stepIndex = 0;
-};
 
-/**
- * Window have loaded
- */
-Sudoko.prototype.onWindowLoad = function() {
-    var parent = document.getElementById("sudoku");
-
-    for (var i = 0; i < this.difficulty * this.difficulty; i++) {
-        var block = document.createElement('div');
-        block.classList.add("block");
-        block.style.boxShadow = "inset 0.4px 0.4px 0.4px 0.4px #000";
-        parent.appendChild(block);
-    }
-
-    for (var y = 0; y < this.difficulty * this.difficulty; y++) {
-        for (var x = 0; x < this.difficulty * this.difficulty; x++) {
-            var field = document.createElement('div');
-            field.classList.add("field");
-            field.dataset.x = x + "";
-            field.dataset.y = y + "";
-            field.dataset.given = String(this.given[y][x] !== 0);
-            field.id = x + "x" + y;
-            field.style.verticalAlign = "middle";
-            field.innerText = this.given[y][x] !== 0 ? this.given[y][x] : "";
-
-            parent.appendChild(field);
-        }
-    }
-
-    this.onResize();
-    setTimeout(function() {
-        this.doNextStep(0);
-    }.bind(this), 0);
+    /**
+     * @type {boolean}
+     */
+    this.auto = false;
 };
 
 Sudoko.prototype.isGiven = function(x, y) {
@@ -64,31 +55,40 @@ Sudoko.prototype.isGiven = function(x, y) {
 };
 
 Sudoko.prototype.isEmpty = function(x, y) {
-    return document.getElementById(x + "x" + y).innerText === "";
+    return document.getElementById(x + "x" + y).dataset.value === "";
 };
 
-Sudoko.prototype.setActive = function(x, y, active) {
+Sudoko.prototype.setColor = function(x, y, color) {
     var element = document.getElementById(x + "x" + y);
     if (element != null) {
-        element.style.background = active ? "#d8ffa7" : "";
+        element.style.background = color;
     }
 
 };
 
 Sudoko.prototype.setValue = function(x, y, value) {
-    document.getElementById(x + "x" + y).innerText = value !== 0 ? value : "";
+    var element = document.getElementById(x + "x" + y);
+    element.dataset.value = value !== 0 ? value : "";
+
+    var span = element.querySelector("span");
+    span.innerText = value !== 0 ? value : "";
 };
 
 
-Sudoko.prototype.incValue = function(x, y) {
-    var value = Number(document.getElementById(x + "x" + y).innerText);
-    value++;
+Sudoko.prototype.incrementValue = function(x, y) {
+    var value = this.getValue(x, y);
+    if (value !== 0) {
+        value++;
+    } else {
+        value = 1;
+    }
+
     this.setValue(x, y, value);
 };
 
-
 Sudoko.prototype.getValue = function(x, y) {
-    return document.getElementById(x + "x" + y).innerText;
+    var element = document.getElementById(x + "x" + y);
+    return element != null ? document.getElementById(x + "x" + y).dataset.value : "";
 };
 
 Sudoko.prototype.isChecksValid = function(x, y) {
@@ -106,7 +106,7 @@ Sudoko.prototype.isVerticalCheckValid = function(x, y) {
             return false;
         }
     }
-    return true;
+    return value !== "";
 };
 
 Sudoko.prototype.isHorizontalCheckValid = function(x, y) {
@@ -119,7 +119,7 @@ Sudoko.prototype.isHorizontalCheckValid = function(x, y) {
             return false;
         }
     }
-    return true;
+    return value !== "";
 };
 
 Sudoko.prototype.isBoxCheckValid = function(x, y) {
@@ -138,72 +138,109 @@ Sudoko.prototype.isBoxCheckValid = function(x, y) {
             }
         }
     }
-    return true;
+    return value !== "";
 };
 
 Sudoko.prototype.isValueValid = function(x, y) {
     return this.getValue(x, y) <= this.difficulty * this.difficulty;
 };
 
-
-
-Sudoko.prototype.step = function(direction) {
-    var x = (this.stepIndex % (this.difficulty * this.difficulty));
-    var y = Math.floor(this.stepIndex / (this.difficulty * this.difficulty));
-    if (this.stepIndex === -1) {
-        console.log(x, y, this.stepIndex, "tofarback");
-        return this.doNextStep(1);
-    }
-
-    if (this.stepIndex === this.difficulty * this.difficulty * this.difficulty * this.difficulty) {
-        console.log(x, y, this.stepIndex, "GREAT SUCCESS");
-        return;
-    }
-
-    // Show background active
-    this.setActive(x, y, true);
-
-    // Step forward or backward.
-    if (this.isGiven(x, y)) {
-        console.log(x, y, this.stepIndex, "given");
-        return direction === 1 ? this.doNextStep(1) : this.doNextStep(-1);
-    }
-
-    // If nothing there, start with 1.
-    if (this.isEmpty(x, y)) {
-        this.setValue(x, y, 1);
-    }
-
-    if (this.isChecksValid(x, y) && direction > -1) {
-        console.log(x, y, this.stepIndex, "valid");
-        return this.doNextStep(1);
-    }
-
-    this.incValue(x, y);
-    if (!this.isValueValid(x, y)) {
-        this.setValue(x, y, "");
-        console.log(x, y, this.stepIndex, "invalidvalue");
-        return this.doNextStep(-1);
-    }
-    console.log(x, y, this.stepIndex, "inc");
-    return this.doNextStep(0);
-};
-
-
 Sudoko.prototype.doNextStep = function(direction) {
-    setTimeout(function() {
-        var x = (this.stepIndex % (this.difficulty * this.difficulty));
-        var y = Math.floor(this.stepIndex / (this.difficulty * this.difficulty));
-        this.setActive(x, y, false);
+    this.stepIndex += direction;
+    this.direction = direction;
 
-        this.stepIndex += direction;
+    if (this.auto) {
+        setTimeout(function() {
+            this.step();
+        }.bind(this), 200);
+    }
+};
 
-        this.step(direction);
-    }.bind(this), 1);
+Sudoko.prototype.onRestartClicked = function() {
+    window.location.reload(true);
+};
+
+Sudoko.prototype.onAutoClicked = function() {
+    if (this.auto) {
+        this.auto = false;
+    } else {
+        this.auto = true;
+        this.step();
+    }
+};
+
+Sudoko.prototype.onOneStepClicked = function() {
+    this.step();
 };
 
 
+Sudoko.prototype.print = function(x, y, text) {
+    console.log("x", x, "y", y, "index", this.stepIndex, "value", this.getValue(x, y), text);
+};
 
+/**
+ * Window have loaded
+ */
+Sudoko.prototype.onWindowLoad = function() {
+    var parent = document.getElementById("sudoku");
+
+    for (var i = 0; i < this.difficulty * this.difficulty; i++) {
+        var block = document.createElement('div');
+        block.classList.add("block");
+        block.style.boxShadow = "inset 0.4px 0.4px 0.4px 0.4px #000";
+        parent.appendChild(block);
+    }
+
+    i = 0;
+    for (var y = 0; y < this.difficulty * this.difficulty; y++) {
+        for (var x = 0; x < this.difficulty * this.difficulty; x++) {
+            var field = document.createElement('div');
+            var span = document.createElement('span');
+            var spanIndex = document.createElement('span');
+            spanIndex.innerText = i + "";
+            span.innerText = "0";
+
+
+            field.appendChild(span);
+            field.appendChild(spanIndex);
+
+            parent.appendChild(field);
+
+            field.classList.add("field");
+            field.dataset.x = x + "";
+            field.dataset.y = y + "";
+            field.dataset.given = String(this.given[y][x] !== 0);
+            field.id = x + "x" + y;
+            field.style.verticalAlign = "middle";
+
+            span.style.transformOrigin = "0 0 0";
+            span.style.transform = "translate(-50%, -50%)";
+            span.style.top = "50%";
+            span.style.left = "50%";
+            span.style.position = "absolute";
+
+            spanIndex.style.background = "rgba(0, 0, 0, 0)";
+            spanIndex.style.color = "rgba(0, 0, 0, 0.5)";
+            spanIndex.style.fontSize = "10px";
+            spanIndex.style.fontWeight = "normal";
+            spanIndex.style.transformOrigin = "0 0 0";
+            spanIndex.style.transform = "translate(0%, 0%)";
+            spanIndex.style.top = "5%";
+            spanIndex.style.left = "5%";
+            spanIndex.style.position = "absolute";
+
+            this.setValue(x, y, this.given[y][x]);
+
+            i++;
+        }
+    }
+
+    this.onResize();
+};
+
+/**
+ * Window have been resized.
+ */
 Sudoko.prototype.onResize = function() {
     var fields = document.getElementsByClassName("field");
     var blocks = document.getElementsByClassName("block");
@@ -211,8 +248,6 @@ Sudoko.prototype.onResize = function() {
     var bodyHeight = document.body.offsetHeight;
     var cellSize = Math.min(bodyWidth, bodyHeight) / (this.difficulty * this.difficulty);
     var i, posX, posY;
-
-    console.log(cellSize, bodyWidth, bodyHeight);
 
     for (i = 0; i < fields.length; i++) {
         var field = fields[i];
@@ -226,8 +261,10 @@ Sudoko.prototype.onResize = function() {
         field.style.textAlign = "center";
         field.style.verticalAlign = "middle";
         field.style.boxShadow = "inset 0.1px 0.1px 0.1px 0.1px #000";
+        field.style.fontFamily = "Roboto";
         if (field.dataset.given === "true") {
             field.style.fontWeight = "bold";
+            field.style.color = "red";
         }
     }
 
